@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promise Tracker — What did we tell customers we would do?</title>
+  <meta name="description" content="AI-powered operational promise tracking engine. Extract, assign, and deliver commitments made to customers in WhatsApp and chats on time.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22><text y=%2226%22 font-size=%2224%22>🔥</text></svg>">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand-wrapper">
+        <div class="brand-icon">🔥</div>
+        <div>
+          <div class="brand-title">Promise Tracker</div>
+          <span class="brand-tag">Zero Missed Commitments</span>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item active" data-tab="dashboard">
+          <span>📊</span>
+          <span>Promise Board</span>
+          <span class="nav-badge badge-warning" id="nav-due-today-badge">0 Due</span>
+        </li>
+        <li class="nav-item" data-tab="ai-extractor">
+          <span>🤖</span>
+          <span>WhatsApp & AI Extractor</span>
+          <span class="nav-badge badge-alert" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: rgba(16, 185, 129, 0.4);">LIVE</span>
+        </li>
+        <li class="nav-item" data-tab="morning-briefing">
+          <span>🌅</span>
+          <span>Morning Dispatch</span>
+        </li>
+        <li class="nav-item" data-tab="team-board">
+          <span>👥</span>
+          <span>Team Accountability</span>
+        </li>
+        <li class="nav-item" data-tab="integrations">
+          <span>🔌</span>
+          <span>Integrations Hub</span>
+          <span class="nav-badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4);">Teams + WA</span>
+        </li>
+        <li class="nav-item" data-tab="webhook-sim">
+          <span>⚡</span>
+          <span>WhatsApp Webhook</span>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="trust-meter">
+          <div class="trust-header">
+            <span>On-Time Promise Score</span>
+            <span class="trust-val" id="sidebar-trust-score">98.4%</span>
+          </div>
+          <div class="trust-bar">
+            <div class="trust-fill" id="sidebar-trust-fill" style="width: 98.4%;"></div>
+          </div>
+        </div>
+
+        <button class="theme-toggle-btn" id="theme-toggle-btn">
+          <span id="theme-icon">☀️</span>
+          <span id="theme-text">Switch to Light Mode</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- View 1: Promise Board Dashboard -->
+      <section id="view-dashboard" class="tab-view active">
+        <div class="top-header">
+          <div class="header-title-wrap">
+            <h1>Customer Promise Board</h1>
+            <p>Track every commitment, deadline, payment, and deliverable promised to your clients.</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-secondary" id="btn-export-csv">
+              <span>📥</span>
+              <span>Export CSV</span>
+            </button>
+            <button class="btn btn-primary" id="btn-open-create-modal">
+              <span>➕</span>
+              <span>New Promise</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Morning Alert Banner -->
+        <div class="morning-banner" id="morning-banner-container">
+          <div class="banner-content">
+            <div class="banner-icon" id="banner-icon">⚠️</div>
+            <div>
+              <div class="banner-title" id="banner-headline">3 customer promises are due today</div>
+              <div class="banner-subtitle" id="banner-subtext">Click to view daily WhatsApp morning dispatch message for your team.</div>
+            </div>
+          </div>
+          <button class="btn btn-whatsapp btn-sm" id="banner-dispatch-btn">
+            <span>📲</span>
+            <span>Open Morning Dispatch</span>
+          </button>
+        </div>
+
+        <!-- Stats Overview Cards -->
+        <div class="stats-grid">
+          <div class="stat-card card-overdue">
+            <div class="stat-header">
+              <span class="stat-label">Overdue Promises</span>
+              <div class="stat-icon-wrap">🔴</div>
+            </div>
+            <div class="stat-value" id="stat-overdue">0</div>
+            <span class="stat-sub">Immediate action required</span>
+          </div>
+
+          <div class="stat-card card-due-today">
+            <div class="stat-header">
+              <span class="stat-label">Due Today</span>
+              <div class="stat-icon-wrap">⚠️</div>
+            </div>
+            <div class="stat-value" id="stat-due-today">0</div>
+            <span class="stat-sub">Commitments closing today</span>
+          </div>
+
+          <div class="stat-card card-on-track">
+            <div class="stat-header">
+              <span class="stat-label">Upcoming / Active</span>
+              <div class="stat-icon-wrap">⏳</div>
+            </div>
+            <div class="stat-value" id="stat-pending">0</div>
+            <span class="stat-sub">On track across team</span>
+          </div>
+
+          <div class="stat-card card-trust">
+            <div class="stat-header">
+              <span class="stat-label">Reliability Rating</span>
+              <div class="stat-icon-wrap">🏆</div>
+            </div>
+            <div class="stat-value" id="stat-trust">98.4%</div>
+            <span class="stat-sub">Fulfilled on time</span>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="filter-container">
+          <div class="filter-row">
+            <div class="pill-group" id="status-filters">
+              <button class="filter-pill active" data-status="all">All Promises</button>
+              <button class="filter-pill" data-status="due_today">⚠️ Due Today</button>
+              <button class="filter-pill" data-status="overdue">🔴 Overdue</button>
+              <button class="filter-pill" data-status="pending">⏳ Upcoming</button>
+              <button class="filter-pill" data-status="completed">✅ Fulfilled</button>
+              <button class="filter-pill" data-status="renegotiated">🔄 Rescheduled</button>
+            </div>
+
+            <div class="search-box-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="search-input" class="search-input" placeholder="Search customer, deliverable, code...">
+            </div>
+          </div>
+
+          <div class="filter-row" style="padding-top: 10px; border-top: 1px solid var(--border-glass);">
+            <div class="pill-group" id="direction-filters">
+              <button class="filter-pill active" data-direction="all">All Directions</button>
+              <button class="filter-pill" data-direction="business_to_customer">📤 Business Deliverables</button>
+              <button class="filter-pill" data-direction="customer_to_business">📥 Customer Payments & Approvals</button>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <select id="category-filter" class="select-filter">
+                <option value="all">All Categories</option>
+                <option value="furniture">Furniture / Delivery</option>
+                <option value="agency">Agency / Design</option>
+                <option value="interior">Interior Design</option>
+                <option value="repair">Device Repair</option>
+                <option value="clinic">Clinic / Healthcare</option>
+                <option value="photography">Photography</option>
+                <option value="renovation">Renovation</option>
+                <option value="payment">Payments</option>
+              </select>
+
+              <select id="responsible-filter" class="select-filter">
+                <option value="all">All Team Members</option>
+                <option value="Sameer">Sameer (Logistics)</option>
+                <option value="Rahul">Rahul (Design)</option>
+                <option value="Priya">Priya (Finance)</option>
+                <option value="Arjun">Arjun (Technician)</option>
+                <option value="Kavita">Kavita (Manager)</option>
+                <option value="Vikram">Vikram (Site Eng)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Promises Cards Grid -->
+        <div class="promises-grid" id="promises-grid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- View 2: WhatsApp Chat Simulator & AI Extractor -->
+      <section id="view-ai-extractor" class="tab-view" style="display: none;">
+        <div class="top-header">
+          <div class="header-title-wrap">
+            <h1>AI Promise Extractor & WhatsApp Simulator</h1>
+            <p>Paste customer chats or test simulated industry conversations to auto-extract commitments.</p>
+          </div>
+        </div>
+
+        <div class="preset-selector-row">
+          <button class="preset-chip active" data-preset="furniture">🛋️ Furniture Shop (Shihab & Sameer)</button>
+          <button class="preset-chip" data-preset="agency">🎨 Digital Agency (₹20k Advance & Figma)</button>
+          <button class="preset-chip" data-preset="interior">🔨 Interior Designer (3D Renders)</button>
+          <button class="preset-chip" data-preset="repair">🔧 Phone Repair (OLED & Battery 4 PM)</button>
+          <button class="preset-chip" data-preset="clinic">🩺 Clinic (Blood Test Results)</button>
+          <button class="preset-chip" data-preset="wedding">📸 Wedding Photography (Teaser Album)</button>
+          <button class="preset-chip" data-preset="contractor">🏗️ Renovation Contractor (Plumbing Check)</button>
+        </div>
+
+        <div class="split-view">
+          <!-- WhatsApp Chat Simulator Column -->
+          <div class="chat-simulator-panel">
+            <div class="chat-simulator-header">
+              <div class="chat-header-user">
+                <div class="chat-avatar" id="sim-avatar">S</div>
+                <div class="chat-user-details">
+                  <h4 id="sim-contact-name">Shihab (Customer)</h4>
+                  <p id="sim-contact-phone">+91 98451 22334 • online</p>
+                </div>
+              </div>
+              <span style="font-size: 0.8rem; color: var(--accent-primary); font-weight: 700;">🟢 WhatsApp Pro</span>
+            </div>
+
+            <!-- Chat Stream -->
+            <div class="chat-stream" id="chat-stream">
+              <!-- Chat Bubbles -->
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-area">
+              <textarea id="custom-chat-input" class="chat-textarea" rows="3" placeholder="Type or paste conversation here (e.g. 'Can you deliver the table by Friday? Yes, Friday evening.')"></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <button class="btn btn-secondary btn-sm" id="btn-audio-memo">
+                  <span>🎙️</span>
+                  <span>Simulate Voice Memo</span>
+                </button>
+                <button class="btn btn-primary" id="btn-run-extraction">
+                  <span>✨</span>
+                  <span>Extract Promises with AI</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Extraction Preview Column -->
+          <div class="extractor-results-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-size: 1.15rem; font-weight: 800;">Extracted Commitments Preview</h3>
+              <span id="extraction-count-badge" style="font-size: 0.8rem; color: var(--accent-primary); font-weight: 700;">Ready to parse</span>
+            </div>
+
+            <div id="extraction-cards-container" style="display: flex; flex-direction: column; gap: 16px;">
+              <div style="padding: 40px; text-align: center; color: var(--text-muted); background: var(--bg-card); border-radius: 16px; border: 1px dashed var(--border-glass);">
+                <div style="font-size: 32px; margin-bottom: 10px;">🤖</div>
+                <p>Click "Extract Promises with AI" on the left to analyze the chat and parse deliverables, deadlines, and responsibilities.</p>
+              </div>
+            </div>
+
+            <div id="extraction-actions-bar" style="display: none; padding-top: 10px;">
+              <button class="btn btn-primary" id="btn-save-all-extracted" style="width: 100%;">
+                <span>💾</span>
+                <span>Save All Extracted Promises to Board</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 3: Daily Morning Dispatch -->
+      <section id="view-morning-briefing" class="tab-view" style="display: none;">
+        <div class="top-header">
+          <div class="header-title-wrap">
+            <h1>Morning Promise Dispatch</h1>
+            <p>Automated daily 8:00 AM briefing messages for team group chat and proactive customer updates.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px;">
+          <div style="background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 20px; padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-size: 1.1rem; font-weight: 700;">🌅 Team WhatsApp Morning Dispatch</h3>
+              <button class="btn btn-whatsapp btn-sm" id="btn-copy-team-digest">
+                <span>📋</span>
+                <span>Copy Message</span>
+              </button>
+            </div>
+            <pre id="team-digest-text" style="background: var(--bg-tertiary); padding: 18px; border-radius: 12px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-main); white-space: pre-wrap; line-height: 1.6; border: 1px solid var(--border-glass);"></pre>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 20px; padding: 24px;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">📲 Proactive Customer Nudges</h3>
+            <div id="customer-nudges-list" style="display: flex; flex-direction: column; gap: 14px;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 4: Team Accountability -->
+      <section id="view-team-board" class="tab-view" style="display: none;">
+        <div class="top-header">
+          <div class="header-title-wrap">
+            <h1>Team Responsibility & Accountability</h1>
+            <p>Track which team members are keeping customer promises and workload distribution.</p>
+          </div>
+          <button class="btn btn-secondary" id="btn-add-team-member">
+            <span>➕</span>
+            <span>Add Team Member</span>
+          </button>
+        </div>
+
+        <div class="stats-grid" id="team-grid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- View 5: Integrations Hub (Microsoft Teams & WhatsApp Cloud API) -->
+      <section id="view-integrations" class="tab-view" style="display: none;">
+        <div class="top-header">
+          <div class="header-title-wrap">
+            <h1>Integrations & Automations Hub</h1>
+            <p>Connect Promise Tracker directly with Microsoft Teams channels and Meta WhatsApp Business API.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px;">
+          
+          <!-- Microsoft Teams Integration Card -->
+          <div style="background: var(--bg-card); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 20px; padding: 26px; display: flex; flex-direction: column; gap: 20px; backdrop-filter: var(--backdrop-blur);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #464eb8; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff;">
+                  👥
+                </div>
+                <div>
+                  <h3 style="font-size: 1.15rem; font-weight: 800;">Microsoft Teams</h3>
+                  <span style="font-size: 0.75rem; color: #818cf8; font-weight: 700;">Incoming Webhooks & Adaptive Cards</span>
+                </div>
+              </div>
+              <span class="status-badge completed" id="teams-status-badge">Configured</span>
+            </div>
+
+            <form id="form-teams-config" class="modal-form" style="gap: 14px;">
+              <div class="form-group">
+                <label class="form-label">Teams Channel Incoming Webhook URL</label>
+                <input type="url" id="cfg-teams-webhook-url" class="form-input" placeholder="https://yourtenant.webhook.office.com/webhookb2/..." style="font-family: var(--font-mono); font-size: 0.8rem;">
+                <span style="font-size: 0.75rem; color: var(--text-dim);">Created via Teams Channel > Connectors / Workflows > Incoming Webhook</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Target Teams Channel Name</label>
+                <input type="text" id="cfg-teams-channel-name" class="form-input" value="General / Operations" placeholder="e.g. Operations Standup">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 8px; background: var(--bg-tertiary); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-glass);">
+                <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; cursor: pointer;">
+                  <input type="checkbox" id="cfg-teams-auto-morning" checked>
+                  <span>🌅 <strong>Auto-Dispatch Daily Morning Briefing</strong> to Teams at 8:00 AM</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; cursor: pointer;">
+                  <input type="checkbox" id="cfg-teams-auto-overdue" checked>
+                  <span>🚨 <strong>Auto-Alert Channel</strong> immediately when a promise is Overdue</span>
+                </label>
+              </div>
+
+              <div style="display: flex; gap: 10px; margin-top: 6px;">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <span>💾</span> Save Teams Config
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-teams-test-alert">
+                  <span>🔔</span> Test Alert Card
+                </button>
+                <button type="button" class="btn btn-whatsapp btn-sm" id="btn-teams-dispatch-digest">
+                  <span>🚀</span> Dispatch Briefing Now
+                </button>
+              </div>
+            </form>
+
+            <!-- Adaptive Card Preview Box -->
+            <div style="border-top: 1px solid var(--border-glass); padding-top: 16px;">
+              <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Live Microsoft Teams Adaptive Card Preview</h4>
+              <div style="background: #201f1f; border: 1px solid #3b3a39; border-radius: 8px; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: var(--shadow-md);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                  <div style="font-size: 20px;">🔥</div>
+                  <div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Promise Tracker — Daily Morning Dispatch</div>
+                    <div style="font-size: 0.75rem; color: #a19f9d;">Reliability Score: 98.4% • 8:00 AM Standup</div>
+                  </div>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.15); border-left: 3px solid #ef4444; padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; font-size: 0.825rem;">
+                  <strong style="color: #f87171;">🔴 Overdue:</strong> [PRM-1038] Ananya Sharma — 3D Living Room Virtual Render (Was due Yesterday 5 PM) ➡️ <strong>@Rahul</strong>
+                </div>
+                <div style="background: rgba(245, 158, 11, 0.15); border-left: 3px solid #f59e0b; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 0.825rem;">
+                  <strong style="color: #fbbf24;">⚠️ Due Today:</strong> [PRM-1041] Shihab — Teak Dining Table Delivery (Today 6 PM) ➡️ <strong>@Sameer</strong>
+                </div>
+                <button style="background: #5b5fc7; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                  🚀 Open Promise Board
+                </button>
+              </div>
+            </div>
+
+            <!-- Teams Bot Command Console -->
+            <div style="border-top: 1px solid var(--border-glass); padding-top: 16px;">
+              <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Teams Outgoing Webhook / Bot Tester</h4>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="teams-bot-input" class="form-input" value="@PromiseTracker due" style="font-family: var(--font-mono); font-size: 0.85rem;">
+                <button class="btn btn-secondary btn-sm" id="btn-run-teams-bot">Send Bot Command</button>
+              </div>
+              <pre id="teams-bot-output" style="display: none; margin-top: 10px; background: var(--bg-tertiary); padding: 12px; border-radius: 8px; font-size: 0.8rem; font-family: var(--font-mono); white-space: pre-wrap;"></pre>
+            </div>
+
+          </div>
+
+          <!-- WhatsApp Cloud API Integration Card -->
+          <div style="background: var(--bg-card); border: 1px solid rgba(37, 211, 102, 0.3); border-radius: 20px; padding: 26px; display: flex; flex-direction: column; gap: 20px; backdrop-filter: var(--backdrop-blur);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #25d366; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff;">
+                  💬
+                </div>
+                <div>
+                  <h3 style="font-size: 1.15rem; font-weight: 800;">Meta WhatsApp Cloud API</h3>
+                  <span style="font-size: 0.75rem; color: #34d399; font-weight: 700;">Official Meta Graph API v19.0 & Twilio</span>
+                </div>
+              </div>
+              <span class="status-badge completed" id="wa-status-badge">Live Webhook</span>
+            </div>
+
+            <!-- Webhook Connection Details -->
+            <div style="background: var(--bg-tertiary); padding: 14px; border-radius: 12px; border: 1px solid var(--border-glass); display: flex; flex-direction: column; gap: 10px;">
+              <div>
+                <label class="form-label" style="font-size: 0.75rem;">Meta Webhook Callback URL (Paste in Meta Developer Portal)</label>
+                <div style="display: flex; gap: 8px; margin-top: 4px;">
+                  <input type="text" id="wa-callback-url" class="form-input" readonly value="http://127.0.0.1:8855/api/integrations/whatsapp/webhook" style="font-family: var(--font-mono); font-size: 0.8rem;">
+                  <button class="btn btn-secondary btn-sm" id="btn-copy-wa-url">Copy</button>
+                </div>
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 0.75rem;">Meta Webhook Verification Token</label>
+                <div style="display: flex; gap: 8px; margin-top: 4px;">
+                  <input type="text" id="wa-verify-token-val" class="form-input" readonly value="promise_tracker_secret_token_2026" style="font-family: var(--font-mono); font-size: 0.8rem;">
+                  <button class="btn btn-secondary btn-sm" id="btn-copy-wa-token">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <form id="form-whatsapp-config" class="modal-form" style="gap: 14px;">
+              <div class="form-group">
+                <label class="form-label">Phone Number ID</label>
+                <input type="text" id="cfg-wa-phone-id" class="form-input" placeholder="e.g. 104829102938102" style="font-family: var(--font-mono);">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Meta Permanent System User Access Token</label>
+                <input type="password" id="cfg-wa-token" class="form-input" placeholder="EAAG..." style="font-family: var(--font-mono);">
+              </div>
+
+              <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-glass);">
+                <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; cursor: pointer;">
+                  <input type="checkbox" id="cfg-wa-auto-ack" checked>
+                  <span>⚡ <strong>Auto-reply confirmation receipt</strong> to customer when promise is detected</span>
+                </label>
+              </div>
+
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <span>💾</span> Save WhatsApp Config
+                </button>
+              </div>
+            </form>
+
+            <!-- Test Outbound WhatsApp Message Tool -->
+            <div style="border-top: 1px solid var(--border-glass); padding-top: 16px;">
+              <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Test Outbound WhatsApp Sender</h4>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <input type="text" id="wa-test-phone" class="form-input" value="+91 98451 22334" placeholder="+91 98765 43210">
+                <textarea id="wa-test-msg" class="form-textarea" rows="2">🔥 Hi Shihab, friendly reminder from Promise Tracker: your Dining Table Delivery is on track for Friday 6 PM.</textarea>
+                <button type="button" class="btn btn-whatsapp btn-sm" id="btn-send-wa-test">
+                  <span>📲</span> Send Test WhatsApp Message
+                </button>
+              </div>
+              <pre id="wa-test-output" style="display: none; margin-top: 10px; background: var(--bg-tertiary); padding: 12px; border-radius: 8px; font-size: 0.8rem; font-family: var(--font-mono); white-space: pre-wrap;"></pre>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- View 6: WhatsApp Webhook Tester -->
+      <section id="view-webhook-sim" class="tab-view" style="display: none;">
+        <div class="top-header">
+          <div class="header-title-wrap">
+            <h1>WhatsApp Cloud Webhook Listener</h1>
+            <p>Simulate real incoming webhooks from WhatsApp Business API or Twilio.</p>
+          </div>
+        </div>
+
+        <div style="max-width: 700px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 20px; padding: 28px;">
+          <form id="webhook-form" class="modal-form">
+            <div class="form-group">
+              <label class="form-label">Customer Name</label>
+              <input type="text" id="webhook-sender" class="form-input" value="Kavita Krishnan" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Customer Phone / WhatsApp Number</label>
+              <input type="text" id="webhook-phone" class="form-input" value="+91 99887 76655" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Incoming WhatsApp Message Payload</label>
+              <textarea id="webhook-msg" class="form-textarea" rows="4" required>Hi, can you deliver the teak sofa set by Saturday 4 PM? I will transfer the ₹15,000 balance tomorrow morning.</textarea>
+            </div>
+            <button type="submit" class="btn btn-whatsapp" style="margin-top: 10px;">
+              <span>⚡</span>
+              <span>Send Simulated Webhook</span>
+            </button>
+          </form>
+
+          <div id="webhook-response-box" style="margin-top: 20px; display: none;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 8px;">Webhook Response:</h4>
+            <pre id="webhook-response-json" style="background: var(--bg-tertiary); padding: 14px; border-radius: 10px; font-family: var(--font-mono); font-size: 0.8rem; overflow-x: auto;"></pre>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal: Create New Promise -->
+  <div class="modal-overlay" id="modal-create-promise">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Create New Customer Promise</h3>
+        <button class="modal-close" data-close="modal-create-promise">&times;</button>
+      </div>
+      <form id="form-create-promise" class="modal-form">
+        <div class="form-group">
+          <label class="form-label">Customer Name</label>
+          <input type="text" name="customer_name" class="form-input" placeholder="e.g. Shihab" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Customer Phone</label>
+          <input type="text" name="customer_phone" class="form-input" placeholder="+91 98765 43210" value="+91 98765 43210">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="form-group">
+            <label class="form-label">Direction</label>
+            <select name="direction" class="form-select">
+              <option value="business_to_customer">📤 Business -> Customer (Deliverable)</option>
+              <option value="customer_to_business">📥 Customer -> Business (Payment/Approval)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select">
+              <option value="furniture">Furniture / Logistics</option>
+              <option value="agency">Design / Digital Agency</option>
+              <option value="interior">Interior Design</option>
+              <option value="repair">Repair Service</option>
+              <option value="clinic">Clinic / Medical</option>
+              <option value="photography">Photography</option>
+              <option value="renovation">Renovation</option>
+              <option value="payment">Payment</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Promise Title</label>
+          <input type="text" name="title" class="form-input" placeholder="e.g. Solid Teak Dining Table Delivery" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Exact Deliverable Description</label>
+          <textarea name="deliverable" class="form-textarea" rows="2" placeholder="Describe exactly what was committed..." required></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="form-group">
+            <label class="form-label">Due Date & Time</label>
+            <input type="datetime-local" name="due_date" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Text</label>
+            <input type="text" name="due_date_text" class="form-input" placeholder="e.g. Friday evening 6 PM">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div class="form-group">
+            <label class="form-label">Responsible Person</label>
+            <select name="responsible_person" class="form-select">
+              <option value="Sameer">Sameer (Logistics)</option>
+              <option value="Rahul">Rahul (UI/UX Designer)</option>
+              <option value="Priya">Priya (Finance)</option>
+              <option value="Arjun">Arjun (Senior Technician)</option>
+              <option value="Kavita">Kavita (Manager)</option>
+              <option value="Vikram">Vikram (Site Engineer)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select name="priority" class="form-select">
+              <option value="critical">🔴 Critical</option>
+              <option value="high">🟡 High</option>
+              <option value="medium" selected>🔵 Medium</option>
+              <option value="low">⚪ Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Amount (if any)</label>
+          <input type="number" name="payment_amount" class="form-input" placeholder="0" value="0">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+          <span>💾</span>
+          <span>Save Promise</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Fulfill Promise -->
+  <div class="modal-overlay" id="modal-fulfill-promise">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>✅ Mark Promise as Fulfilled</h3>
+        <button class="modal-close" data-close="modal-fulfill-promise">&times;</button>
+      </div>
+      <form id="form-fulfill-promise" class="modal-form">
+        <input type="hidden" id="fulfill-promise-id">
+        <p id="fulfill-promise-summary" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 10px;"></p>
+        <div class="form-group">
+          <label class="form-label">Proof / Resolution Note</label>
+          <textarea id="fulfill-proof-note" class="form-textarea" rows="3" placeholder="e.g. Delivered table at 5:15 PM, signed invoice #482 signed by customer." required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Attachment URL / Reference (Optional)</label>
+          <input type="text" id="fulfill-proof-attachment" class="form-input" placeholder="e.g. https://invoice-link.com or photo reference">
+        </div>
+        <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          <span>✅</span>
+          <span>Confirm Fulfillment</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Renegotiate Deadline -->
+  <div class="modal-overlay" id="modal-renegotiate-promise">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🔄 Reschedule / Renegotiate Deadline</h3>
+        <button class="modal-close" data-close="modal-renegotiate-promise">&times;</button>
+      </div>
+      <form id="form-renegotiate-promise" class="modal-form">
+        <input type="hidden" id="renegotiate-promise-id">
+        <p id="renegotiate-promise-summary" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 10px;"></p>
+        <div class="form-group">
+          <label class="form-label">New Promised Due Date</label>
+          <input type="datetime-local" id="renegotiate-new-date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Due Date Label</label>
+          <input type="text" id="renegotiate-new-text" class="form-input" placeholder="e.g. Next Monday 11:00 AM">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reason for Delay / Extension</label>
+          <textarea id="renegotiate-reason" class="form-textarea" rows="3" placeholder="e.g. Client requested additional revisions; supplier delayed parts." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
+          <span>🔄</span>
+          <span>Update Promise & Record Reason</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: View Audit History -->
+  <div class="modal-overlay" id="modal-audit-history">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="audit-modal-title">Promise Audit History</h3>
+        <button class="modal-close" data-close="modal-audit-history">&times;</button>
+      </div>
+      <div id="audit-logs-timeline" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
